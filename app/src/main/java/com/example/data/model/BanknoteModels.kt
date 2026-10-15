@@ -43,7 +43,8 @@ data class ScanResult(
     val confidence: Float,
     val doubts: List<String>,
     val verification: String,
-    val bitmap: Bitmap? = null
+    val bitmap: Bitmap? = null,
+    val extractedTextLines: List<String> = emptyList()
 ) {
     val totalBills: Int get() = counts.values.sum()
     val totalAmount: Long get() = counts.entries.sumOf { (denom, count) -> denom.toLong() * count }

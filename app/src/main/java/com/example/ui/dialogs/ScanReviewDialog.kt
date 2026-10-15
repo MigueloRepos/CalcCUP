@@ -4,18 +4,15 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +44,7 @@ fun ScanReviewDialog(
     val detectedBills = pendingCounts.values.sum()
     val detectedTotal = pendingCounts.entries.sumOf { it.key.toLong() * it.value }
     val confidencePct = (scanResult.confidence * 100).toInt()
+    var showExtractedText by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -199,6 +197,68 @@ fun ScanReviewDialog(
                                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                                             modifier = Modifier.padding(vertical = 2.dp)
                                         )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Extracted OCR text lines from ML Kit
+                    if (scanResult.extractedTextLines.isNotEmpty()) {
+                        item {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { showExtractedText = !showExtractedText }
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(text = "📝", fontSize = 14.sp)
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "Texto extraído por OCR (${scanResult.extractedTextLines.size} líneas)",
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                        Icon(
+                                            imageVector = if (showExtractedText) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                            contentDescription = if (showExtractedText) "Ocultar" else "Mostrar",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+
+                                    if (showExtractedText) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(
+                                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                                .padding(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                                        ) {
+                                            scanResult.extractedTextLines.forEachIndexed { idx, line ->
+                                                Text(
+                                                    text = "${idx + 1}. $line",
+                                                    fontSize = 11.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
