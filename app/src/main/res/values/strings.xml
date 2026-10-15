@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Contador CUP</string>
+    <string name="title_cuban_counter">Contador de Billetes Cubanos</string>
+    <string name="subtitle_ai_assistant">Reconocimiento asistido por IA · Peso Cubano (CUP)</string>
+    <string name="badge_only_cup">SOLO CUP</string>
+    <string name="total_accumulated">TOTAL ACUMULADO</string>
+    <string name="btn_camera">Analizar cámara</string>
+    <string name="btn_gallery">Analizar foto</string>
+    <string name="btn_clear">Limpiar</string>
+    <string name="btn_settings">Ajustes</string>
+    <string name="btn_share">Compartir reporte</string>
+    <string name="btn_bundles">Calcular fajos</string>
+    <string name="how_it_works_title">Cómo funciona</string>
+    <string name="how_it_works_desc">Toma una foto de los billetes cubanos o elígelos de tu galería. La IA detecta automáticamente las denominaciones y muestra un panel de verificación con confianza y posibles dudas antes de modificar tu acumulado. Puedes corregir cantidades y confirmar con un toque.</string>
+    <string name="history_title">Historial de movimientos</string>
+    <string name="history_empty">Sin movimientos todavía.</string>
+    <string name="modal_review_title">Revisión de billetes cubanos</string>
+    <string name="modal_reject">Descartar</string>
+    <string name="modal_accept">✓ Confirmar y sumar</string>
+    <string name="modal_replace">Reemplazar total</string>
+    <string name="metrics_bills_detected">billetes detectados</string>
+    <string name="metrics_total_detected">total detectado</string>
+    <string name="metrics_confidence">confianza global</string>
+    <string name="warning_doubts">Observaciones y dudas</string>
+    <string name="dialog_clear_title">¿Borrar todo el contador?</string>
+    <string name="dialog_clear_msg">Se reiniciarán todos los billetes a 0 y se limpiará el historial de conteo.</string>
+    <string name="confirm">Confirmar</string>
+    <string name="cancel">Cancelar</string>
+</resources>

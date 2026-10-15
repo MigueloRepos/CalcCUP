@@ -1,0 +1,6 @@
+{
+  "name": "Contador CUP",
+  "description": "Contador inteligente de billetes cubanos (CUP) con reconocimiento por foto e IA",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
