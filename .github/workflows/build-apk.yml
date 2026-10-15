@@ -1,0 +1,19 @@
+- name: Instalar dependencias
+  run: npm ci
+
+- name: Compilar React/Vite
+  run: npm run build
+
+- name: Sincronizar Capacitor
+  run: npx cap sync android
+
+- name: Construir APK
+  working-directory: android
+  run: ./gradlew assembleDebug
+
+- name: Guardar APK
+  uses: actions/upload-artifact@v4
+  with:
+    name: CalcCUP
+    path: android/app/build/outputs/apk/debug/*.apk
+    if-no-files-found: error
