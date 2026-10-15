@@ -9,6 +9,7 @@ import com.example.data.model.HistoryItem
 import com.example.data.model.ScanResult
 import com.example.data.repository.BanknoteRepository
 import com.example.data.service.BanknoteAiService
+import com.example.data.service.BanknoteMlKitService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +57,7 @@ class BanknoteCounterViewModel(application: Application) : AndroidViewModel(appl
 
     private val repository = BanknoteRepository(application.applicationContext)
     private val aiService = BanknoteAiService()
+    private val mlKitService = BanknoteMlKitService()
 
     private val _isAnalyzing = MutableStateFlow(false)
     private val _statusMessage = MutableStateFlow<String?>("Listo para contar o escanear.")
@@ -165,12 +167,17 @@ class BanknoteCounterViewModel(application: Application) : AndroidViewModel(appl
             val customGemini = repository.customGeminiKey.value
             val customOpenAi = repository.customOpenAiKey.value
 
-            val result = aiService.analyzeBanknotes(
-                bitmap = bitmap,
-                provider = provider,
-                customApiKey = customGemini,
-                customOpenAiKey = customOpenAi
-            )
+            val result = if (provider.equals("MLKIT", ignoreCase = true)) {
+                _statusMessage.value = "Reconociendo con Google ML Kit (Offline)…"
+                mlKitService.recognizeBanknotes(bitmap)
+            } else {
+                aiService.analyzeBanknotes(
+                    bitmap = bitmap,
+                    provider = provider,
+                    customApiKey = customGemini,
+                    customOpenAiKey = customOpenAi
+                )
+            }
 
             _isAnalyzing.value = false
             result.onSuccess { scanResult ->
@@ -255,6 +262,21 @@ class BanknoteCounterViewModel(application: Application) : AndroidViewModel(appl
 
     fun closeDirectEdit() {
         _directEditDenom.value = null
+    }
+
+    fun cycleAiProvider() {
+        val current = repository.aiProvider.value
+        val next = when (current) {
+            "MLKIT" -> "GEMINI"
+            "GEMINI" -> if (repository.customOpenAiKey.value.isNotBlank()) "OPENAI" else "MLKIT"
+            else -> "MLKIT"
+        }
+        repository.setAiProvider(next)
+        _statusMessage.value = when (next) {
+            "MLKIT" -> "Modo activado: Google ML Kit (Offline / Sin internet)"
+            "GEMINI" -> "Modo activado: Google Gemini (IA en la nube)"
+            else -> "Modo activado: OpenAI GPT"
+        }
     }
 
     fun saveApiSettings(geminiKey: String, openAiKey: String, provider: String) {

@@ -10,11 +10,13 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -36,11 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.example.ui.camera.LiveCameraScannerScreen
 import com.example.ui.components.*
 import com.example.ui.dialogs.*
 import com.example.ui.theme.CubanBlueAccent
 import com.example.ui.theme.CubanBluePrimary
 import com.example.ui.theme.CubanGold
+import com.example.ui.theme.CubanGoldDark
 import com.example.ui.theme.CubanRed
 import com.example.ui.viewmodel.BanknoteCounterViewModel
 import java.io.File
@@ -53,6 +57,8 @@ fun MainCounterScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
+    var showLiveCamera by remember { mutableStateOf(false) }
 
     // Temp URI for high-res camera photo capture
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
@@ -107,11 +113,9 @@ fun MainCounterScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val uri = createTempPictureUri()
-            tempPhotoUri = uri
-            cameraLauncher.launch(uri)
+            showLiveCamera = true
         } else {
-            Toast.makeText(context, "Se necesita permiso de cámara para tomar fotos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Se necesita permiso de cámara para el escáner", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -229,7 +233,7 @@ fun MainCounterScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Camera Button
+                            // Camera Button (Live in-app Scanner)
                             Button(
                                 onClick = {
                                     val hasCamPerm = ContextCompat.checkSelfPermission(
@@ -237,9 +241,7 @@ fun MainCounterScreen(
                                         Manifest.permission.CAMERA
                                     ) == PackageManager.PERMISSION_GRANTED
                                     if (hasCamPerm) {
-                                        val uri = createTempPictureUri()
-                                        tempPhotoUri = uri
-                                        cameraLauncher.launch(uri)
+                                        showLiveCamera = true
                                     } else {
                                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                                     }
@@ -304,6 +306,73 @@ fun MainCounterScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
+                        }
+
+                        // Engine Mode Quick Switcher Chip
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = when (uiState.aiProvider) {
+                                    "MLKIT" -> CubanGold.copy(alpha = 0.15f)
+                                    "GEMINI" -> CubanBluePrimary.copy(alpha = 0.12f)
+                                    else -> MaterialTheme.colorScheme.surfaceVariant
+                                },
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    when (uiState.aiProvider) {
+                                        "MLKIT" -> CubanGold.copy(alpha = 0.4f)
+                                        "GEMINI" -> CubanBluePrimary.copy(alpha = 0.3f)
+                                        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    }
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(999.dp))
+                                    .clickable { viewModel.cycleAiProvider() }
+                                    .testTag("engine_toggle_chip")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = when (uiState.aiProvider) {
+                                            "MLKIT" -> "⚡ ML Kit (Offline / Sin internet)"
+                                            "GEMINI" -> "☁️ Gemini (Visión por IA)"
+                                            else -> "🤖 OpenAI GPT"
+                                        },
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = when (uiState.aiProvider) {
+                                            "MLKIT" -> CubanGoldDark
+                                            "GEMINI" -> CubanBluePrimary
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Icon(
+                                        imageVector = Icons.Default.SwapHoriz,
+                                        contentDescription = "Cambiar motor",
+                                        modifier = Modifier.size(14.dp),
+                                        tint = when (uiState.aiProvider) {
+                                            "MLKIT" -> CubanGoldDark
+                                            "GEMINI" -> CubanBluePrimary
+                                            else -> MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = "Toca para alternar",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                            )
                         }
 
                         // Status / Loading Message Banner
@@ -470,6 +539,19 @@ fun MainCounterScreen(
                     Text("Cancelar")
                 }
             }
+        )
+    }
+
+    // Fullscreen Live In-App Camera Scanner Viewfinder
+    if (showLiveCamera) {
+        BackHandler { showLiveCamera = false }
+        LiveCameraScannerScreen(
+            activeEngine = uiState.aiProvider,
+            onCapture = { capturedBitmap ->
+                showLiveCamera = false
+                viewModel.analyzeBitmap(capturedBitmap)
+            },
+            onClose = { showLiveCamera = false }
         )
     }
 }

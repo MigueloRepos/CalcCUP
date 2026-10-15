@@ -94,15 +94,43 @@ fun SettingsDialog(
                 ) {
                     // Provider selector
                     Text(
-                        text = "Motor de IA para reconocimiento",
+                        text = "Motor de reconocimiento",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        // ML Kit (Offline)
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { selectedProvider = "MLKIT" },
+                            color = if (selectedProvider == "MLKIT") CubanBluePrimary else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "ML Kit",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = if (selectedProvider == "MLKIT") androidx.compose.ui.graphics.Color.White else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Offline / Local",
+                                    fontSize = 10.sp,
+                                    color = if (selectedProvider == "MLKIT") androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
+
+                        // Gemini
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
@@ -112,22 +140,24 @@ fun SettingsDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
-                                modifier = Modifier.padding(12.dp),
+                                modifier = Modifier.padding(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Google Gemini",
+                                    text = "Gemini",
                                     fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
                                     color = if (selectedProvider == "GEMINI") androidx.compose.ui.graphics.Color.White else MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Recomendado",
-                                    fontSize = 11.sp,
+                                    text = "IA Visión Nube",
+                                    fontSize = 10.sp,
                                     color = if (selectedProvider == "GEMINI") androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                         }
 
+                        // OpenAI
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
@@ -137,24 +167,46 @@ fun SettingsDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
-                                modifier = Modifier.padding(12.dp),
+                                modifier = Modifier.padding(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "OpenAI GPT",
+                                    text = "OpenAI",
                                     fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
                                     color = if (selectedProvider == "OPENAI") androidx.compose.ui.graphics.Color.White else MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Clave personalizada",
-                                    fontSize = 11.sp,
+                                    text = "Clave propia",
+                                    fontSize = 10.sp,
                                     color = if (selectedProvider == "OPENAI") androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                         }
                     }
 
-                    if (selectedProvider == "GEMINI") {
+                    if (selectedProvider == "MLKIT") {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = "⚡ Google ML Kit Text Recognition (On-Device)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = CubanBluePrimary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Se ejecuta 100% en el dispositivo de forma instantánea. No requiere conexión a internet, no consume datos ni necesita claves API. Lee los números impresos en los billetes cubanos (20000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10, 5).",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+                                    lineHeight = 17.sp
+                                )
+                            }
+                        }
+                    } else if (selectedProvider == "GEMINI") {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
                             shape = RoundedCornerShape(12.dp)
