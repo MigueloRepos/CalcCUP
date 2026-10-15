@@ -19,41 +19,27 @@ jobs:
       - name: Descargar codigo
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-         
-
       - name: Configurar Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Instalar dependencias
-        run: npm install
-
-      - name: Construir React y Vite
-        run: npm run build
-
-      - name: Preparar Capacitor
-        run: npx cap sync android
-
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
 
-      - name: Dar permisos a Gradle
-        run: chmod +x android/gradlew
+      - name: Verificar Gradle
+        run: gradle --version
 
-      - name: Compilar APK
-        working-directory: android
-        run: ./gradlew assembleDebug
+      - name: Compilar APK de prueba
+        run: gradle assembleDebug --stacktrace
 
       - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
           name: CalcCUP-APK
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
