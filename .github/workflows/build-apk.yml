@@ -1,19 +1,59 @@
-- name: Instalar dependencias
-  run: npm ci
 
-- name: Compilar React/Vite
-  run: npm run build
+name: Construir APK CalcCUP
 
-- name: Sincronizar Capacitor
-  run: npx cap sync android
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
-- name: Construir APK
-  working-directory: android
-  run: ./gradlew assembleDebug
+permissions:
+  contents: read
 
-- name: Guardar APK
-  uses: actions/upload-artifact@v4
-  with:
-    name: CalcCUP
-    path: android/app/build/outputs/apk/debug/*.apk
-    if-no-files-found: error
+jobs:
+  build:
+    name: Compilar aplicacion Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Construir React y Vite
+        run: npm run build
+
+      - name: Preparar Capacitor
+        run: npx cap sync android
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Dar permisos a Gradle
+        run: chmod +x android/gradlew
+
+      - name: Compilar APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalcCUP-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
